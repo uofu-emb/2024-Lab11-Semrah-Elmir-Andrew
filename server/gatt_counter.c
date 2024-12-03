@@ -55,6 +55,7 @@
 #include "gatt_counter.h"
 #include "btstack.h"
 #include "ble/gatt-service/battery_service_server.h"
+#include "temp_sense.h"
 
 #define HEARTBEAT_PERIOD_MS 1000
 
@@ -220,6 +221,14 @@ static uint16_t att_read_callback(hci_con_handle_t connection_handle, uint16_t a
 
     if (att_handle == ATT_CHARACTERISTIC_0000FF11_0000_1000_8000_00805F9B34FB_01_VALUE_HANDLE){
         return att_read_callback_handle_blob((const uint8_t *)counter_string, counter_string_len, offset, buffer, buffer_size);
+    }
+
+    if (att_handle = ATT_CHARACTERISTIC_0x180A_01_VALUE_HANDLE) {
+        float temp_measurement = temperature_poll(); //Read ADC temperature value.
+        printf("Temperature Before Conversion: %.2f\n", temp_measurement);
+        uint16_t tempConverted = (uint16_t)(temp_measurement*100); //Convert ADC to centigrade.
+        printf("Temperature After Conversion: %u\n", tempConverted);
+        return att_read_callback_handle_little_endian_16(tempConverted, offset, buffer, buffer_size); //Return the temperature value to bluetooth device.
     }
     return 0;
 }
